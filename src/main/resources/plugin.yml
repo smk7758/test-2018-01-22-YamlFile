@@ -1,0 +1,8 @@
+name: YamlFile
+main: com.github.smk7758.YamlFile.Main
+version: 0.0.1
+author: smk7758
+permissions:
+commands:
+  YamlFile:
+    description: BukkitPluginBasic's command.
