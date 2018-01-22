@@ -13,10 +13,6 @@ public class CommandExecuter implements CommandExecutor {
 
 	@Override
 	public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
-		if (command.getName().equalsIgnoreCase("YamlFile")) {
-			main.game_file.reloadYamlFile(main.game_file);
-			return true;
-		}
 		return false;
 	}
 }
