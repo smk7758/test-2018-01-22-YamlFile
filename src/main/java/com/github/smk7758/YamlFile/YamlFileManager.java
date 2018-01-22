@@ -1,8 +1,9 @@
 package com.github.smk7758.YamlFile;
 
-import java.awt.List;
 import java.lang.reflect.Field;
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Modifier;
+import java.util.List;
 
 import org.bukkit.Bukkit;
 import org.bukkit.plugin.Plugin;
@@ -15,14 +16,14 @@ public class YamlFileManager {
 	}
 
 	public YamlFile reloadYamlFile(YamlFile file) {
-		loadFields(file, file.getClass().getFields(), "");
+		loadFields(file, file.getClass().getFields(), file, "");
 		return file;
 	}
 
-	private void loadFields(YamlFile file_object, Field[] fields, String parent_yaml_path) {
+	private void loadFields(YamlFile file_object, Field[] fields, Object parent, String parent_yaml_path) {
 		try {
 			boolean is_root_class = false;
-			String yaml_path = "";
+			String yaml_path = "", yaml_path_access;
 			if (parent_yaml_path == null || parent_yaml_path.isEmpty()) is_root_class = true;
 			else yaml_path += parent_yaml_path + ".";
 			for (Field field : fields) {
@@ -30,26 +31,27 @@ public class YamlFileManager {
 				if (field.isAnnotationPresent(YamlFileManagerField.class) || Modifier.isFinal(field.getModifiers())) continue;
 				// TODO: 動作が怪しい。
 
-				yaml_path += field.getName();
+				yaml_path_access = yaml_path + field.getName();
 
 				if (field.getType().equals(String.class)) {
-					SendLog.debug("inside!: " + yaml_path, Bukkit.getConsoleSender());
-					field.set(file_object, file_object.getFileConfiguration().getString(yaml_path));
-					SendLog.debug(file_object.getFileConfiguration().getString(yaml_path), Bukkit.getConsoleSender());
+					SendLog.debug("inside!: " + yaml_path_access, Bukkit.getConsoleSender());
+					field.set(parent, file_object.getFileConfiguration().getString(yaml_path_access));
+					SendLog.debug(file_object.getFileConfiguration().getString(yaml_path_access), Bukkit.getConsoleSender());
 				} else if (field.getType().equals(List.class) && field.getGenericType().equals(String.class)) {
-					field.set(file_object, file_object.getFileConfiguration().getStringList(yaml_path));
+					field.set(parent, file_object.getFileConfiguration().getStringList(yaml_path_access));
 				} else if (field.getType().equals(int.class)) {
-					field.set(file_object, file_object.getFileConfiguration().getInt(yaml_path));
+					field.set(parent, file_object.getFileConfiguration().getInt(yaml_path_access));
 				} else {
 					// 再帰的呼び出し
 					SendLog.debug(field.getName() + " is not value.", Bukkit.getConsoleSender());
 
 					// TODO: クラスオブジェクトとして読み込まれないから、そのクラスのフィールドを取得出来ないことの対処。
-					// loadFields(file_object, c.getFields(), yaml_path);
+					Object field_object = field.getType().getConstructor(file_object.getClass()).newInstance(file_object);
+					loadFields(file_object, field_object.getClass().getFields(), field_object, yaml_path_access);
 				}
 			}
 			if (is_root_class) file_object.loadField();
-		} catch (IllegalArgumentException | IllegalAccessException ex) {
+		} catch (IllegalArgumentException | IllegalAccessException | SecurityException | InstantiationException | InvocationTargetException | NoSuchMethodException ex) {
 			ex.printStackTrace();
 		}
 	}

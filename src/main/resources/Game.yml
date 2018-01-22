@@ -2,6 +2,7 @@ GameName: test
 GameLength: 1,00 #1h,00min
 Book:
   Name: test
+  Title: test!
   Lore:
     - lore test.
   Pages:

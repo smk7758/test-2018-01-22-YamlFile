@@ -11,7 +11,7 @@ public class GameFile extends YamlFile {
 	public int GameLength;
 	@YamlFileManagerField(false)
 	public List<HashMap<String, String>> Players;
-	public Book Book = new Book();
+	public Book Book = null;
 
 	public class Book {
 		public String Name, Title;
